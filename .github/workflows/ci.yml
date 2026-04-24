@@ -1,0 +1,73 @@
+name: brew test-bot
+
+on:
+  pull_request:
+    paths:
+      - "Formula/**"
+      - ".github/workflows/ci.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "Formula/**"
+
+# Reason: cancel superseded runs on the same ref. Formula audits and test
+# installs are slow; we do not want three runs of the same PR stacking up.
+concurrency:
+  group: brew-test-bot-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  test-bot:
+    strategy:
+      fail-fast: false
+      matrix:
+        # Reason: validate the formula on every platform we actually ship a
+        # binary for. macos-14 is Apple Silicon, macos-13 is the last
+        # Intel-backed hosted runner, and ubuntu-24.04 covers Linux x86_64.
+        # We skip Linux arm64 here because brew on Linux arm64 is unofficial
+        # and the hosted arm64 runner is mostly useful for compiling — the
+        # static musl binary itself is already validated by the upstream
+        # release workflow.
+        os:
+          - macos-14
+          - macos-13
+          - ubuntu-24.04
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        # Reason: pinned to a specific Homebrew/actions commit SHA even though
+        # it is a first-party Homebrew action, to match the supply-chain
+        # hygiene applied in the crux repo's workflows.
+        uses: Homebrew/actions/setup-homebrew@59e6b20d96df1a3c9ccb0aa402676e01a4cc6ff3 # master @ 2026-04
+
+      - name: Cache Homebrew Bundler RubyGems
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ${{ steps.set-up-homebrew.outputs.gems-path }}
+          key: ${{ matrix.os }}-rubygems-${{ steps.set-up-homebrew.outputs.gems-hash }}
+          restore-keys: ${{ matrix.os }}-rubygems-
+
+      - name: Run brew test-bot --only-cleanup-before
+        run: brew test-bot --only-cleanup-before
+
+      - name: Run brew test-bot --only-setup
+        run: brew test-bot --only-setup
+
+      - name: Run brew test-bot --only-tap-syntax
+        # Reason: tap-syntax runs `brew audit` / `brew style` on every formula
+        # and catches the most common breakage (bad URLs, missing stanzas,
+        # RuboCop violations). Runs on every push and PR.
+        run: brew test-bot --only-tap-syntax
+
+      - name: Run brew test-bot (formula install + test)
+        # Reason: the full install-and-test pass is the slowest part of
+        # test-bot, so we only do it for PRs. Pushes to main that come from
+        # the crux release bump job have already been audited upstream.
+        if: github.event_name == 'pull_request'
+        run: brew test-bot --only-formulae
