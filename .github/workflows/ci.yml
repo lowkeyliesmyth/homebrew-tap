@@ -1,6 +1,7 @@
 name: brew test-bot
 
 on:
+  workflow_call:
   pull_request:
     paths:
       - "Formula/**"
@@ -34,16 +35,13 @@ jobs:
         # static musl binary itself is already validated by the upstream
         # release workflow.
         os:
-          - macos-14
-          - macos-13
+          - macos-15
+          - macos-26
           - ubuntu-24.04
     runs-on: ${{ matrix.os }}
     steps:
       - name: Set up Homebrew
         id: set-up-homebrew
-        # Reason: pinned to a specific Homebrew/actions commit SHA even though
-        # it is a first-party Homebrew action, to match the supply-chain
-        # hygiene applied in the crux repo's workflows.
         uses: Homebrew/actions/setup-homebrew@59e6b20d96df1a3c9ccb0aa402676e01a4cc6ff3 # master @ 2026-04
 
       - name: Cache Homebrew Bundler RubyGems
