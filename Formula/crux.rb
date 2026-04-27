@@ -8,6 +8,7 @@ class Crux < Formula
   license "MIT"
 
   on_macos do
+    depends_on arch: :arm64
     on_arm do
       url "https://github.com/lowkeyliesmyth/crux/releases/download/#{version}/crux-#{version}-darwin-arm64.tar.gz"
       sha256 "6b20eb534c101aba4b0060140d7e6ff8f273ce5e5b2014e9f2bb2fcb2bc03ec8"
