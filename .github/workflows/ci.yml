@@ -28,11 +28,12 @@ jobs:
       fail-fast: false
       matrix:
         # Reason: validate the formula on every platform we actually ship a
-        # binary for. macos-14 is Apple Silicon, macos-13 is the last
-        # Intel-backed hosted runner, and ubuntu-24.04 covers Linux x86_64.
-        # We skip Linux arm64 here because brew on Linux arm64 is unofficial
-        # and the hosted arm64 runner is mostly useful for compiling — the
-        # static musl binary itself is already validated by the upstream
+        # binary for. macos-15 (Sequoia) and macos-26 (Tahoe) are both
+        # Apple Silicon — we do not ship a darwin-x86_64 binary, and the
+        # formula declares `depends_on arch: :arm64` inside `on_macos` to
+        # make that explicit. ubuntu-24.04 covers Linux x86_64. We skip
+        # Linux arm64 because brew on Linux arm64 is unofficial and the
+        # static binary itself is already validated by the upstream
         # release workflow.
         os:
           - macos-15
@@ -42,6 +43,9 @@ jobs:
     steps:
       - name: Set up Homebrew
         id: set-up-homebrew
+        # Reason: setup-homebrew automatically taps the current repo when
+        # the repo name starts with `homebrew-`, so subsequent `brew` calls
+        # can refer to `lowkeyliesmyth/tap` without an explicit tap step.
         uses: Homebrew/actions/setup-homebrew@59e6b20d96df1a3c9ccb0aa402676e01a4cc6ff3 # master @ 2026-04
 
       - name: Cache Homebrew Bundler RubyGems
@@ -51,17 +55,32 @@ jobs:
           key: ${{ matrix.os }}-rubygems-${{ steps.set-up-homebrew.outputs.gems-hash }}
           restore-keys: ${{ matrix.os }}-rubygems-
 
+      - name: Style check
+        # Reason: `brew style` runs RuboCop against every formula in the
+        # tap and catches formatting and idiomatic-Ruby issues. We do not
+        # run `brew test-bot --only-tap-syntax` because that invokes
+        # `readall --os=all --arch=all`, which iterates Intel macOS — a
+        # platform we explicitly do not ship for. See depends_on arch:
+        # :arm64 in Formula/crux.rb.
+        run: brew style lowkeyliesmyth/tap
+
+      - name: Audit formula
+        # Reason: `brew audit --strict` verifies the formula against the
+        # current runner's platform: malformed URLs, deprecated stanzas,
+        # missing licenses, dead links, etc. Scoped per-platform so it
+        # does not trip on the absent Intel macOS variant.
+        run: brew audit --strict lowkeyliesmyth/tap/crux
+
       - name: Run brew test-bot --only-cleanup-before
+        # Reason: cleanup + setup are prerequisites for the install+test
+        # pass below. Skipped on plain pushes since we only do the full
+        # install dance on PRs.
+        if: github.event_name == 'pull_request'
         run: brew test-bot --only-cleanup-before
 
       - name: Run brew test-bot --only-setup
+        if: github.event_name == 'pull_request'
         run: brew test-bot --only-setup
-
-      - name: Run brew test-bot --only-tap-syntax
-        # Reason: tap-syntax runs `brew audit` / `brew style` on every formula
-        # and catches the most common breakage (bad URLs, missing stanzas,
-        # RuboCop violations). Runs on every push and PR.
-        run: brew test-bot --only-tap-syntax
 
       - name: Run brew test-bot (formula install + test)
         # Reason: the full install-and-test pass is the slowest part of
