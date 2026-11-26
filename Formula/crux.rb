@@ -4,25 +4,25 @@
 class Crux < Formula
   desc "DevEx and operations CLI for everyday workflows"
   homepage "https://github.com/lowkeyliesmyth/crux"
-  version "0.3.4"
+  version "0.4.0"
   license "MIT"
 
   on_macos do
     depends_on arch: :arm64
     on_arm do
-      url "https://github.com/lowkeyliesmyth/crux/releases/download/#{version}/crux-#{version}-darwin-arm64.tar.gz"
-      sha256 "488a893083a3e0d3191203d1f34188ce5e8d7ef655ebf2d4a016c686dac5ba05"
+      url "https://github.com/lowkeyliesmyth/crux/releases/download/0.4.0/crux-#{version}-darwin-arm64.tar.gz"
+      sha256 "3ae0bb686b0da3f551791867b6448112f3d2d9dc1dc7cd7ddb9752e73d7a7f27"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://github.com/lowkeyliesmyth/crux/releases/download/#{version}/crux-#{version}-linux-arm64.tar.gz"
-      sha256 "98a66e7be057a5d56fcd744c38869c43ddf1b8e0c848a07de26be6e5d7a89124"
+      url "https://github.com/lowkeyliesmyth/crux/releases/download/0.4.0/crux-#{version}-linux-arm64.tar.gz"
+      sha256 "1159a32976aace04e71a6f256e10e496c94b4df7c5dcdc5d483fd337462bcc91"
     end
     on_intel do
-      url "https://github.com/lowkeyliesmyth/crux/releases/download/#{version}/crux-#{version}-linux-x86_64.tar.gz"
-      sha256 "9efe2ac8fdc59eaac5621d6506b18f77395fd9a11e2c622c2f4329cf6cab4331"
+      url "https://github.com/lowkeyliesmyth/crux/releases/download/0.4.0/crux-#{version}-linux-x86_64.tar.gz"
+      sha256 "aa63db4daf6fa3bd9f16c07ec169ad0bd5d76255cfcfe0809055dcbff655b3c7"
     end
   end
 
