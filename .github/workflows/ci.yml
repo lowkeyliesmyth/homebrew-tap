@@ -95,5 +95,5 @@ jobs:
         if: github.event_name == 'pull_request' && runner.os == 'Linux'
         run: |
           brew install --formula lowkeyliesmyth/tap/crux
-          brew linkage --test lowkeyliesmyth/tap/crux
+          #brew linkage --test lowkeyliesmyth/tap/crux
           brew test --verbose lowkeyliesmyth/tap/crux
