@@ -78,16 +78,22 @@ jobs:
         # Reason: cleanup + setup are prerequisites for the install+test
         # pass below. Skipped on plain pushes since we only do the full
         # install dance on PRs.
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && runner.os == 'macOS'
         run: brew test-bot --only-cleanup-before
 
       - name: Run brew test-bot --only-setup
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && runner.os == 'macOS'
         run: brew test-bot --only-setup
 
       - name: Run brew test-bot (formula install + test)
-        # Reason: the full install-and-test pass is the slowest part of
-        # test-bot, so we only do it for PRs. Pushes to main that come from
-        # the crux release bump job have already been audited upstream.
-        if: github.event_name == 'pull_request'
+        # Reason: the full install-and-test pass is the slowest part of test-bot, so we only do it for PRs. Pushes to main that come from the crux release bump job have already been audited upstream.
+        if: github.event_name == 'pull_request' && runner.os == 'macOS'
         run: brew test-bot --only-formulae
+
+      - name: Install and test Crux on Linux
+        # Reason: Crux ships release tarballs, and test-bot's local bottle reinstall on Linux fails Homebrew's tap trust check.
+        if: github.event_name == 'pull_request' && runner.os == 'Linux'
+        run: |
+          brew install --formula lowkeyliesmyth/tap/crux
+          brew linkage --test lowkeyliesmyth/tap/crux
+          brew test --verbose lowkeyliesmyth/tap/crux
