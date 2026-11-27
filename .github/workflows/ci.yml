@@ -48,6 +48,9 @@ jobs:
         # can refer to `lowkeyliesmyth/tap` without an explicit tap step.
         uses: Homebrew/actions/setup-homebrew@59e6b20d96df1a3c9ccb0aa402676e01a4cc6ff3 # master @ 2026-04
 
+      - name: Trust the Crux formula
+        run: brew trust --formula lowkeyliesmyth/tap/crux
+
       - name: Cache Homebrew Bundler RubyGems
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
@@ -75,16 +78,22 @@ jobs:
         # Reason: cleanup + setup are prerequisites for the install+test
         # pass below. Skipped on plain pushes since we only do the full
         # install dance on PRs.
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && runner.os == 'macOS'
         run: brew test-bot --only-cleanup-before
 
       - name: Run brew test-bot --only-setup
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && runner.os == 'macOS'
         run: brew test-bot --only-setup
 
       - name: Run brew test-bot (formula install + test)
-        # Reason: the full install-and-test pass is the slowest part of
-        # test-bot, so we only do it for PRs. Pushes to main that come from
-        # the crux release bump job have already been audited upstream.
-        if: github.event_name == 'pull_request'
+        # Reason: the full install-and-test pass is the slowest part of test-bot, so we only do it for PRs. Pushes to main that come from the crux release bump job have already been audited upstream.
+        if: github.event_name == 'pull_request' && runner.os == 'macOS'
         run: brew test-bot --only-formulae
+
+      - name: Install and test Crux on Linux
+        # Reason: Crux ships release tarballs, and test-bot's local bottle reinstall on Linux fails Homebrew's tap trust check.
+        if: github.event_name == 'pull_request' && runner.os == 'Linux'
+        run: |
+          brew install --formula lowkeyliesmyth/tap/crux
+          #brew linkage --test lowkeyliesmyth/tap/crux
+          brew test --verbose lowkeyliesmyth/tap/crux
