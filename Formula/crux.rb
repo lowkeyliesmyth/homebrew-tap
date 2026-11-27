@@ -4,24 +4,23 @@
 class Crux < Formula
   desc "DevEx and operations CLI for everyday workflows"
   homepage "https://github.com/lowkeyliesmyth/crux"
-  version "0.4.0"
   license "MIT"
 
   on_macos do
     depends_on arch: :arm64
     on_arm do
-      url "https://github.com/lowkeyliesmyth/crux/releases/download/0.4.0/crux-#{version}-darwin-arm64.tar.gz"
+      url "https://github.com/lowkeyliesmyth/crux/releases/download/0.4.0/crux-0.4.0-darwin-arm64.tar.gz"
       sha256 "3ae0bb686b0da3f551791867b6448112f3d2d9dc1dc7cd7ddb9752e73d7a7f27"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://github.com/lowkeyliesmyth/crux/releases/download/0.4.0/crux-#{version}-linux-arm64.tar.gz"
+      url "https://github.com/lowkeyliesmyth/crux/releases/download/0.4.0/crux-0.4.0-linux-arm64.tar.gz"
       sha256 "1159a32976aace04e71a6f256e10e496c94b4df7c5dcdc5d483fd337462bcc91"
     end
     on_intel do
-      url "https://github.com/lowkeyliesmyth/crux/releases/download/0.4.0/crux-#{version}-linux-x86_64.tar.gz"
+      url "https://github.com/lowkeyliesmyth/crux/releases/download/0.4.0/crux-0.4.0-linux-x86_64.tar.gz"
       sha256 "aa63db4daf6fa3bd9f16c07ec169ad0bd5d76255cfcfe0809055dcbff655b3c7"
     end
   end
